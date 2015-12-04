@@ -65,8 +65,11 @@ def _sslutils_req(domains = [], cfg = "", key = ""):
 
         savesync(cfg, tobytes(config))
 
-        #RSA
-        cmd = ['openssl', 'req', '-sha256', '-nodes', '-subj', subject, '-keyout', key, '-newkey', 'rsa:2048', '-new', '-outform', 'der', '-config', cfg]
+        #create RSA key
+        _sslutils_rsa_makekey(key, "", 2048)
+
+        #create request
+        cmd = ['openssl', 'req', '-sha256', '-nodes', '-subj', subject, '-key', key, '-new', '-outform', 'der', '-config', cfg]
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
         ret = p.communicate('')[0]
         if (p.returncode != 0):
