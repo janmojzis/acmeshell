@@ -27,8 +27,8 @@ cp source/*.py source/SOURCES "${build}/work"
       grep -v '^from' "${file}"
       echo ""
     done 
-  ) > letsnecryptshell
-  chmod 755 letsnecryptshell
-  mv letsnecryptshell "${bin}"
+  ) > letsencryptshell
+  chmod 755 letsencryptshell
+  mv letsencryptshell "${bin}"
 )
 
