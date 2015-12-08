@@ -161,7 +161,7 @@ def _sslutils_ecdsa_makekey(sk = ""):
         XXX TODO - remove dependency on openssl
         """
 
-        cmd = ['openssl', 'ecparam', '-name', 'prime256v1', '-genkey']
+        cmd = ['openssl', 'ecparam', '-name', 'prime256v1', '-genkey', '-rand', '/dev/urandom']
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stdin = subprocess.PIPE, stderr = subprocess.PIPE)
         data = p.communicate("")[0]
         if (p.returncode != 0):
