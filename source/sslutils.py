@@ -19,6 +19,20 @@ def sslutils_x509_dertopem(x = ""):
                 raise Exception("%s: failed" % (" ".join(cmd)))
         return ret
 
+def sslutils_x509_pemtoder(x = ""):
+        """
+        Conversion from PEM to DER format
+        XXX TODO - remove dependency on openssl
+        """
+
+        cmd = ['openssl', 'x509', '-inform', 'pem', '-outform', 'der']
+        p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
+        ret = p.communicate(x)[0]
+        if (p.returncode != 0):
+                raise Exception("%s: failed" % (" ".join(cmd)))
+        return ret
+
+
 def sslutils_x509_pemtotext(x = ""):
         """
         Conversion from PEM format to text form
@@ -65,8 +79,12 @@ def _sslutils_req(domains = [], cfg = "", key = ""):
 
         savesync(cfg, tobytes(config))
 
-        #create RSA key
-        _sslutils_rsa_makekey(key, "", 2048)
+        if 1 == 1:
+                #create RSA key
+                _sslutils_rsa_makekey(key, "", 2048)
+        else:
+                #create ECDSA key - XXX TODO
+                _sslutils_ecdsa_makekey(key)
 
         #create request
         cmd = ['openssl', 'req', '-sha256', '-nodes', '-subj', subject, '-key', key, '-new', '-outform', 'der', '-config', cfg]
@@ -136,6 +154,25 @@ def _sslutils_rsa_makekey(sk = "", pk = "", size = 2048):
         f.write(data)
         os.fsync(f.fileno())
         f.close()
+
+def _sslutils_ecdsa_makekey(sk = ""):
+        """
+        Create ECDSA key
+        XXX TODO - remove dependency on openssl
+        """
+
+        cmd = ['openssl', 'ecparam', '-name', 'prime256v1', '-genkey']
+        p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stdin = subprocess.PIPE, stderr = subprocess.PIPE)
+        data = p.communicate("")[0]
+        if (p.returncode != 0):
+                raise Exception("%s: failed" % (" ".join(cmd)))
+        f = open(sk, "wb")
+        os.fchmod(f.fileno(), stat.S_IRUSR | stat.S_IWUSR)
+        f.write(data)
+        os.fsync(f.fileno())
+        f.close()
+
+
 
 def sslutils_rsa_makekey(sk = "", pk = "", size = 2048):
         """
