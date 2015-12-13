@@ -359,6 +359,46 @@ class LetsEncryptUI(UserInterface):
                 self._log("KEY=%s\nCERT=%s\n" % (key_dst, crt_dst), self.INFO)
 
 
+        def method_certificaterevokeold(self, dummy):
+                """
+                Method revokes old x509 certificates
+                """
+
+                certs = []
+                for fn in os.listdir(self.config["certs"]):
+                        if fn[-6:] == "crt.bk":
+                                st = os.stat(os.path.join(self.config["certs"], fn))
+                                if st.st_nlink == 1:
+                                        certs.append(fn[:-7])
+
+                if not len(certs):
+                        raise Exception("can't revoke certificates, no non-active certificate found! Try to request new certificate and after that revoke the old one.")
+
+                for domain in certs:
+                        fnc  = os.path.join(self.config["certs"], "%s.crt.bk" % (domain))
+                        fncr = os.path.join(self.config["certs"], "%s.crt.revoked" % (domain))
+                        fnk  = os.path.join(self.config["certs"], "%s.key.bk" % (domain))
+                        fnkr = os.path.join(self.config["certs"], "%s.key.revoked" % (domain))
+
+                        pem = open(fnc, 'r').read()
+                        der = sslutils_x509_pemtoder(pem)
+
+                        payload = {
+                                "resource": "revoke-cert",
+                                "certificate": tobase64(der),
+                        }
+
+                        headers = {'content-type': 'application/json'}
+                        response = self._httpquery(self.acmedirectory["revoke-cert"], self.jws(payload), headers)
+                        if response["status"] != 200:
+                                if "jsonbody" in response:
+                                        raise Exception("ACME query failed: %s" % (response["jsonbody"]))
+                                else:
+                                        raise Exception("ACME query failed: %s" % (response["error"]))
+                        os.rename(fnc, fncr)
+                        os.rename(fnk, fnkr)
+
+
 usagetext = """
  name:
    letsencryptshell - shell style commandline client for LetsEncrypt
