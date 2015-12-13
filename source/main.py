@@ -230,7 +230,10 @@ class LetsEncryptUI(UserInterface):
                                 break
                 
                 data = open(chl_dst, 'r').read().split('\n')
+                if self.config["stdin"] != "tty":
+                        print(data[2])
                 self._log("URL=%s\nCONTENT=%s\n" % (data[1], data[2]), self.INFO)
+
 
 
         def method_domainconfirm(self, domain):
