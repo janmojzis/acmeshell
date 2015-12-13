@@ -257,7 +257,11 @@ class LetsEncryptUI(UserInterface):
                 token = keyauth.split('.')[0]
 
                 i = 0
-                for timeout in [3, 11, 45]:
+                if self.config["stdin"] == "tty":
+                        timeouts = [3, 11, 45]
+                else:
+                        timeouts = [10, 100, 1000]
+                for timeout in timeouts:
                         response = self._httpquery(url)
                         if response["status"] != 202:
                                 if "jsonbody" in response:
