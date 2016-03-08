@@ -1,1 +1,1 @@
-See http://mojzis.com/software/letsencryptshell/
+See https://mojzis.com/software/letsencryptshell/
