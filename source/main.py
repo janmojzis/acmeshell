@@ -332,7 +332,7 @@ class LetsEncryptUI(UserInterface):
                 crt_bak = "%s.%s.crt.bk"  % (dn, tm)
                 crt_dst = "%s.crt"  % (dn)
                 cfg     = "%s.%s.conf" % (dn, tm)
-                csr = tobase64(sslutils_req(domains, cfg, key_tmp))
+                csr = tobase64(sslutils_req(domains, cfg, key_tmp, self.config["ecdsa"]))
 
                 payload = {
                         "resource": "new-cert",
@@ -446,10 +446,11 @@ if __name__ == "__main__":
         config["url"] = "https://acme-v01.api.letsencrypt.org/directory"
         #config["url"] = "https://acme-staging.api.letsencrypt.org/directory"
         config["register"] = False
+        config["ecdsa"] = False
 
         #parse program parameters
         try:
-                options, arguments = getopt.getopt(sys.argv[1:], 'u:hd')
+                options, arguments = getopt.getopt(sys.argv[1:], 'u:hde')
         except:
                 #bad option
                 usage("Error: Bad option.")
@@ -466,6 +467,8 @@ if __name__ == "__main__":
                         config["register"] = True
                 if opt == "-d":
                         config["debug"] = True
+                if opt == "-e":
+                        config["ecdsa"] = True
 
 
         #home directory

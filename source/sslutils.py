@@ -46,7 +46,7 @@ def sslutils_x509_pemtotext(x = ""):
                 raise Exception("%s: failed" % (" ".join(cmd)))
         return ret
 
-def _sslutils_req(domains = [], cfg = "", key = ""):
+def _sslutils_req(domains = [], cfg = "", key = "", ecdsa = False):
         """
         Create new RSA key and simple CSR request.
         XXX TODO - remove dependency on openssl
@@ -79,12 +79,12 @@ def _sslutils_req(domains = [], cfg = "", key = ""):
 
         savesync(cfg, tobytes(config))
 
-        if 1 == 1:
+        if ecdsa:
+                #create ECDSA key
+                _sslutils_ecdsa_makekey(key)
+        else:
                 #create RSA key
                 _sslutils_rsa_makekey(key, "", 2048)
-        else:
-                #create ECDSA key - XXX TODO
-                _sslutils_ecdsa_makekey(key)
 
         #create request
         cmd = ['openssl', 'req', '-sha256', '-nodes', '-subj', subject, '-key', key, '-new', '-outform', 'der', '-config', cfg]
@@ -94,12 +94,12 @@ def _sslutils_req(domains = [], cfg = "", key = ""):
                 raise Exception("%s: failed" % (" ".join(cmd)))
         return ret
 
-def sslutils_req(domains = [], cfg = "", key = ""):
+def sslutils_req(domains = [], cfg = "", key = "", ecdsa = False):
         """
         SECURITY: Secret key operation is isolated in separate process.
         """
 
-        return subprocessrun(_sslutils_req, domains, cfg, key)
+        return subprocessrun(_sslutils_req, domains, cfg, key, ecdsa)
 
 
 
