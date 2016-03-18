@@ -417,6 +417,7 @@ usagetext = """
    -h     (optional): print usage
    -d     (optional): debug mode
    -u url (optional): ACME directory (default: https://acme-v01.api.letsencrypt.org/directory)
+   -e     (optional): create ECDSA key + cert instead of RSA
 """
 
 
