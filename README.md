@@ -58,4 +58,4 @@ intermediate certificate: {home}/.letsencryptshell/certs/{domain}.im
 * letsencryptshell currently supports only http-01 ACME challege (tls-sni-01 will be added soon)
 * letsencryptshell currently supports RSA(2048bit) and ECDSA(256bit) keys
 
-See http://mojzis.com/software/letsencryptshell/
+See https://mojzis.com/software/letsencryptshell/
