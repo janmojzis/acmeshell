@@ -304,6 +304,19 @@ class LetsEncryptUI(UserInterface):
 
                 raise Exception("Request pending, try it again later")
 
+        def _parse_im_url(self, pem):
+                """
+                Parse intermediate cert URL from X509 certificate
+                XXX - it's hack, not serious parser
+                """
+
+                data = tostr(sslutils_x509_pemtotext(pem))
+                for line in data.split('\n'):
+                        line = line.strip()
+                        if line[0:10].lower() != "ca issuers":
+                                continue
+                        line = line.split(':', 1)[1]
+                        return line
 
         def method_certificateget(self, domain):
                 """
@@ -331,6 +344,9 @@ class LetsEncryptUI(UserInterface):
                 crt_tmp = "%s.%s.crt.tmp" % (dn, tm)
                 crt_bak = "%s.%s.crt.bk"  % (dn, tm)
                 crt_dst = "%s.crt"  % (dn)
+                im_tmp = "%s.%s.im.tmp" % (dn, tm)
+                im_bak = "%s.%s.im.bk"  % (dn, tm)
+                im_dst = "%s.im"  % (dn)
                 cfg     = "%s.%s.conf" % (dn, tm)
                 csr = tobase64(sslutils_req(domains, cfg, key_tmp, self.config["ecdsa"]))
 
@@ -349,21 +365,30 @@ class LetsEncryptUI(UserInterface):
                 try:
                         #XXX TODO - remove this try-except
                         pem = sslutils_x509_dertopem(response["body"])
+
+                        #get intermediate cert.
+                        impem = httpquery(self._parse_im_url(pem))
+
                         savesync(crt_tmp, pem)
+                        savesync(im_tmp, impem["body"])
                 except:
                         os.unlink(key_tmp)
                         if os.path.exists(crt_tmp):
                                 os.unlink(crt_tmp)
+                        if os.path.exists(im_tmp):
+                                os.unlink(im_tmp)
                         raise
 
                 os.link(key_tmp, key_bak)
                 os.rename(key_tmp, key_dst)
                 os.link(crt_tmp, crt_bak)
                 os.rename(crt_tmp, crt_dst)
+                os.link(im_tmp, im_bak)
+                os.rename(im_tmp, im_dst)
 
                 if self.config["stdin"] == "tty":
                         print(tostr(sslutils_x509_pemtotext(pem)))
-                self._log("KEY=%s\nCERT=%s\n" % (key_dst, crt_dst), self.INFO)
+                self._log("KEY=%s\nCERT=%s\nIM=%s\n" % (key_dst, crt_dst, im_dst), self.INFO)
 
 
         def method_certificaterevokeold(self, dummy):
@@ -386,6 +411,8 @@ class LetsEncryptUI(UserInterface):
                         fncr = os.path.join(self.config["certs"], "%s.crt.revoked" % (domain))
                         fnk  = os.path.join(self.config["certs"], "%s.key.bk" % (domain))
                         fnkr = os.path.join(self.config["certs"], "%s.key.revoked" % (domain))
+                        fni  = os.path.join(self.config["certs"], "%s.im.bk" % (domain))
+                        fnir = os.path.join(self.config["certs"], "%s.im.revoked" % (domain))
 
                         pem = open(fnc, 'r').read()
                         der = sslutils_x509_pemtoder(pem)
@@ -404,6 +431,8 @@ class LetsEncryptUI(UserInterface):
                                         raise Exception("ACME query failed: %s" % (response["error"]))
                         os.rename(fnc, fncr)
                         os.rename(fnk, fnkr)
+                        if os.path.exists(fni):
+                                os.rename(fni, fnir)
 
 
 usagetext = """
@@ -443,9 +472,9 @@ if __name__ == "__main__":
         config["sk"] = os.path.join(config["home"], "sk.pem")
         config["pk"] = os.path.join(config["home"], "pk.pem")
         config["config"] = os.path.join(config["home"], "config")
-        config["debug"] = True #XXX TODO - debug is currently default
+        #config["debug"] = True #XXX TODO - debug is currently default
         config["url"] = "https://acme-v01.api.letsencrypt.org/directory"
-        #config["url"] = "https://acme-staging.api.letsencrypt.org/directory"
+        config["url"] = "https://acme-staging.api.letsencrypt.org/directory"
         config["register"] = False
         config["ecdsa"] = False
 
