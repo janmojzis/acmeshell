@@ -472,9 +472,9 @@ if __name__ == "__main__":
         config["sk"] = os.path.join(config["home"], "sk.pem")
         config["pk"] = os.path.join(config["home"], "pk.pem")
         config["config"] = os.path.join(config["home"], "config")
-        #config["debug"] = True #XXX TODO - debug is currently default
+        config["debug"] = True #XXX TODO - debug is currently default
         config["url"] = "https://acme-v01.api.letsencrypt.org/directory"
-        config["url"] = "https://acme-staging.api.letsencrypt.org/directory"
+        #config["url"] = "https://acme-staging.api.letsencrypt.org/directory"
         config["register"] = False
         config["ecdsa"] = False
 
