@@ -12,7 +12,10 @@ def sslutils_x509_dertopem(x = ""):
         XXX TODO - remove dependency on openssl
         """
 
-        cmd = ['openssl', 'x509', '-inform', 'der']
+        if x.find("BEGIN CERTIFICATE") != -1:
+                return x
+
+        cmd = ['openssl', 'x509', '-inform', 'der', '-outform', 'pem']
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stdin = subprocess.PIPE)
         ret = p.communicate(x)[0]
         if (p.returncode != 0):
@@ -24,6 +27,9 @@ def sslutils_x509_pemtoder(x = ""):
         Conversion from PEM to DER format
         XXX TODO - remove dependency on openssl
         """
+
+        if x.find("BEGIN CERTIFICATE") == -1:
+                return x
 
         cmd = ['openssl', 'x509', '-inform', 'pem', '-outform', 'der']
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stdin = subprocess.PIPE)

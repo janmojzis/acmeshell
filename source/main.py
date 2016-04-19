@@ -370,7 +370,7 @@ class LetsEncryptUI(UserInterface):
                         impem = httpquery(self._parse_im_url(pem))
 
                         savesync(crt_tmp, pem)
-                        savesync(im_tmp, impem["body"])
+                        savesync(im_tmp, sslutils_x509_dertopem(impem["body"]))
                 except:
                         os.unlink(key_tmp)
                         if os.path.exists(crt_tmp):
