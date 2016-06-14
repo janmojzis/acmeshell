@@ -198,11 +198,14 @@ class LetsEncryptUI(UserInterface):
                         raise Exception("usage: domainchallenge domain")
 
                 #challenge filename
-                #XXX TODO -  support only for http-01
-                chl_dst = os.path.join(self.config["certs"], "%s.http-01.chl" % (domain))
-                chl_tmp = "%s.tmp" % (chl_dst)
+                #support for http-01
+                chl_http_dst = os.path.join(self.config["certs"], "%s.http-01.chl" % (domain))
+                chl_http_tmp = "%s.tmp" % (chl_http_dst)
+                #support for dns-01
+                chl_dns_dst = os.path.join(self.config["certs"], "%s.dns-01.chl" % (domain))
+                chl_dns_tmp = "%s.tmp" % (chl_dns_dst)
 
-                if not os.path.exists(chl_dst):
+                if not os.path.exists(chl_http_dst) or not os.path.exists(chl_dns_dst):
                         payload = {
                                 "resource": "new-authz",
                                 "identifier": {
@@ -219,21 +222,32 @@ class LetsEncryptUI(UserInterface):
                                         raise Exception("ACME query failed: %s" % (response["error"]))
 
                         for x in response["jsonbody"]["challenges"]:
-                                if x["type"] != "http-01":
-                                        #XXX TODO -  support only for http-01
-                                        continue
-
-                                #data = str("%s\nhttp://%s/.well-known/acme-challenge/%s\n%s.%s\n" % (x["uri"], domain, x["token"], x["token"], self.jwkthumb))
-                                data = "%s\nhttp://%s/.well-known/acme-challenge/%s\n%s.%s\n" % (x["uri"], domain, x["token"], x["token"], self.jwkthumb)
-                                savesync(chl_tmp, tobytes(data))
-                                os.rename(chl_tmp, chl_dst)
-                                break
+                                if x["type"] == "http-01":
+                                        #support for http-01
+                                        keyauth = "%s.%s" % (x["token"], self.jwkthumb)
+                                        content = x["token"]
+                                        data = "%s\nhttp://%s/.well-known/acme-challenge/%s\n%s\n" % (x["uri"], domain, content, keyauth)
+                                        savesync(chl_http_tmp, tobytes(data))
+                                        os.rename(chl_http_tmp, chl_http_dst)
+                                if x["type"] == "dns-01":
+                                        #support for dns-01
+                                        keyauth = "%s.%s" % (x["token"], self.jwkthumb)
+                                        content = tobase64(hashlib.sha256(tobytes(keyauth)).digest())
+                                        data = "%s\n'_acme-challenge.%s:%s\n%s\n" % (x["uri"], domain, content, keyauth)
+                                        savesync(chl_dns_tmp, tobytes(data))
+                                        os.rename(chl_dns_tmp, chl_dns_dst)
                 
-                data = open(chl_dst, 'r').read().split('\n')
+                #http-01
+                data = open(chl_http_dst, 'r').read().split('\n')
                 if self.config["stdin"] != "tty":
                         print(data[2])
-                self._log("URL=%s\nCONTENT=%s\n" % (data[1], data[2]), self.INFO)
+                self._log("http-01:\nURL=%s\nCONTENT=%s\n" % (data[1], data[2]), self.INFO)
 
+                #dns-01
+                data = open(chl_dns_dst, 'r').read().split('\n')
+                self._log("dns-01:\nDNS=%s\n" % (data[1]), self.INFO)
+                if self.config["stdin"] != "tty":
+                        print(data[1].split(':')[1]) #XXX
 
 
         def method_domainconfirm(self, domain):
@@ -246,10 +260,34 @@ class LetsEncryptUI(UserInterface):
 
                 if not len(domain):
                         self.printdoc(self.method_domainconfirm)
-                        raise Exception("usage: domainconfirm domain")
+                        raise Exception("usage: domainconfirm domain [type]")
+
+                domains = []
+                tmp = domain.split(" ")
+                for d in tmp:
+                        if len(d):
+                                domains.append(d)
+                domain = domains[0]
 
                 #challenge filename
-                chl_dst = os.path.join(self.config["certs"], "%s.http-01.chl" % (domain))
+                chl_http_dst = os.path.join(self.config["certs"], "%s.http-01.chl" % (domain))
+                chl_dns_dst = os.path.join(self.config["certs"], "%s.dns-01.chl" % (domain))
+
+                if (len(domains) > 1):
+                        if domains[1] == "http":
+                                typ = "http-01"
+                                chl_dst = chl_http_dst
+                        elif domains[1] == "dns":
+                                typ = "dns-01"
+                                chl_dst = chl_dns_dst
+                        elif domains[1] == "dns-01":
+                                typ = "dns-01"
+                                chl_dst = chl_dns_dst
+                        else:
+                                raise Exception("type must be dns or http")
+                else:
+                        typ = "http-01"
+                        chl_dst = chl_http_dst
 
                 if not os.path.exists(chl_dst):
                         raise Exception("challenge not exist, try 'challenge %s' first" % (domain))
@@ -257,7 +295,6 @@ class LetsEncryptUI(UserInterface):
                 data = open(chl_dst, 'r').read().split('\n')
                 url = data[0]
                 keyauth = data[2]
-                token = keyauth.split('.')[0]
 
                 i = 0
                 if self.config["stdin"] == "tty":
@@ -273,11 +310,13 @@ class LetsEncryptUI(UserInterface):
                                         raise Exception("ACME query failed: %s" % (response["error"]))
 
                         if response["jsonbody"]["status"] == 'valid':
-                                os.unlink(chl_dst)
+                                os.unlink(chl_http_dst)
+                                os.unlink(chl_dns_dst)
                                 return
 
                         if response["jsonbody"]["status"] == 'invalid':
-                                os.unlink(chl_dst)
+                                os.unlink(chl_http_dst)
+                                os.unlink(chl_dns_dst)
                                 raise Exception("%s - try again 'challenge %s'" % (response["jsonbody"]["error"], domain))
 
                         if response["jsonbody"]["status"] != 'pending':
@@ -286,10 +325,8 @@ class LetsEncryptUI(UserInterface):
                         if i == 0:
                                 payload = {
                                         "resource": "challenge",
-                                        "type": "http-01",
-                                        "tls": True,
+                                        "type": typ,
                                         "keyAuthorization": keyauth,
-                                        "token": token,
                                 }
 
                                 headers = {'content-type': 'application/json'}
