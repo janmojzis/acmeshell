@@ -404,9 +404,10 @@ class LetsEncryptUI(UserInterface):
                         pem = sslutils_x509_dertopem(response["body"])
 
                         #get intermediate cert.
-                        impem = httpquery(self._parse_im_url(pem))
+                        imurl = self._parse_im_url(pem)
+                        impem = httpquery(imurl)
                         if impem["status"] != 200:
-                                raise Exception("unable to download intermediate certificate: %d" % impem["error"])
+                                raise Exception("unable to download intermediate certificate from %s: %s" % (imurl,impem["error"]))
 
                         savesync(crt_tmp, pem)
                         savesync(im_tmp, sslutils_x509_dertopem(impem["body"]))
