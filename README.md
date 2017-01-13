@@ -26,7 +26,7 @@ directory for certificates: {home}/.letsencryptshell/certs
 
 #### Confirm the agreement and Register Your RSA public-key and email ####
 ~~~
-LetsEncryptShell> register https://letsencrypt.org/documents/LE-SA-v1.0.1-July-27-2015.pdf {email@address}
+LetsEncryptShell> register https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf {email@address}
 ~~~
 
 ### usage ###
