@@ -11,8 +11,10 @@ def sslutils_x509_dertopem(x = ""):
         Conversion from DER to PEM format
         XXX TODO - remove dependency on openssl
         """
-
-        if x.find("BEGIN CERTIFICATE") != -1:
+        certificate_header = "BEGIN CERTIFICATE"
+        if isinstance(x, bytes):
+                certificate_header = b"BEGIN CERTIFICATE"
+        if x.find(certificate_header) != -1:
                 return x
 
         cmd = ['openssl', 'x509', '-inform', 'der', '-outform', 'pem']
@@ -28,7 +30,10 @@ def sslutils_x509_pemtoder(x = ""):
         XXX TODO - remove dependency on openssl
         """
 
-        if x.find("BEGIN CERTIFICATE") == -1:
+        certificate_header = "BEGIN CERTIFICATE"
+        if isinstance(x, bytes):
+                certificate_header = b"BEGIN CERTIFICATE"
+        if x.find(certificate_header) != -1:
                 return x
 
         cmd = ['openssl', 'x509', '-inform', 'pem', '-outform', 'der']
