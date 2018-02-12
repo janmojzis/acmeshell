@@ -1,6 +1,6 @@
 import getopt, os, time, fcntl
 
-class LetsEncryptUI(UserInterface):
+class AcmeUI(UserInterface):
         """
         XXX TODO
         Class which implements user friendly
@@ -32,9 +32,9 @@ class LetsEncryptUI(UserInterface):
 
                 #log
                 if self.config["stdin"] == "tty":
-                        self._log("*******************************", self.SUCCESS)
-                        self._log("* LetsEncrypt SHELL startting *", self.SUCCESS)
-                        self._log("*******************************", self.SUCCESS)
+                        self._log("************************", self.SUCCESS)
+                        self._log("* ACME SHELL startting *", self.SUCCESS)
+                        self._log("************************", self.SUCCESS)
                         self._log("config = %s" % (self.config), self.DEBUG)
 
                 #ACME Replay-Nonce
@@ -477,10 +477,10 @@ class LetsEncryptUI(UserInterface):
 
 usagetext = """
  name:
-   letsencryptshell - shell style commandline client for LetsEncrypt
+   acmeshell - shell style commandline client for ACME
 
  syntax:
-   letsencryptshell [options] 
+   acmeshell [options] 
 
  options:
    -h     (optional): print usage
@@ -504,10 +504,10 @@ if __name__ == "__main__":
 
         #create config structure
         config = {}
-        config["name"] = "LetsEncryptShell"
-        config["home"] = os.path.join(os.environ["HOME"], ".letsencryptshell")
-        config["lock"] = os.path.join(os.environ["HOME"], ".letsencryptshell", "lock")
-        config["certs"] = os.path.join(os.environ["HOME"], ".letsencryptshell", "certs")
+        config["name"] = "ACMEShell"
+        config["home"] = os.path.join(os.environ["HOME"], ".acmeshell")
+        config["lock"] = os.path.join(os.environ["HOME"], ".acmeshell", "lock")
+        config["certs"] = os.path.join(os.environ["HOME"], ".acmeshell", "certs")
         config["histfile"] = os.path.join(config["home"], "histfile")
         config["sk"] = os.path.join(config["home"], "sk.pem")
         config["pk"] = os.path.join(config["home"], "pk.pem")
@@ -563,5 +563,5 @@ if __name__ == "__main__":
                 os.rename(tmppk, config["pk"])
                 os.rename(tmpsk, config["sk"])
 
-        ui = LetsEncryptUI(config)
+        ui = AcmeUI(config)
         sys.exit(ui.serve())

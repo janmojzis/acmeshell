@@ -1,9 +1,9 @@
-all: letsencryptshell
+all: acmeshell
 
 tests:
 	sh -e make-tests.sh
 test:
 	sh -e make-tests.sh
 
-letsencryptshell:
+acmeshell:
 	sh -e make.sh
