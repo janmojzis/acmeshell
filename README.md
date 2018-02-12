@@ -2,15 +2,15 @@
 ACMEShell is Python2/3 compatible shell-style client for [LetsEncrypt](https://letsencrypt.org/).
 It's simple tool for anyone who would like to request a SSL certificate.
 
-* [acmeshell.py](//mojzis.com/software/acmeshell/acmeshell.py)
+* [acmeshell.py](https://mojzis.com/software/acmeshell/acmeshell.py)
 * also on [github](https://github.com/janmojzis/acmeshell/)
 
 ### warning ###
 * project renamed from letsencryptshell due to trademark violation
 
 ### goals ###
-* user friendly (simple shell-style user interface) [... see examples](examples.html)
-* script friendly (simple integration into automated scripts) [... see examples](examples.html)
+* user friendly (simple shell-style user interface) [... see examples](https://mojzis.com/software/acmeshell/examples.html)
+* script friendly (simple integration into automated scripts) [... see examples](https://mojzis.com/software/acmeshell/examples.html)
 * portable code (compatible with python2 and python3)
 * easily auditable (currently less than 1500 rows of code)
 
