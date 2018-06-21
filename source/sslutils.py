@@ -141,7 +141,7 @@ def _sslutils_rsa_makekey(sk = "", pk = "", size = 2048):
         XXX TODO - remove dependency on openssl
         """
 
-        cmd = ['openssl', 'genrsa', '-rand', '/dev/urandom', str(size)]
+        cmd = ['openssl', 'genrsa']
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE, stdin = subprocess.PIPE, stderr = subprocess.PIPE)
         data = p.communicate("")[0]
         if (p.returncode != 0):
